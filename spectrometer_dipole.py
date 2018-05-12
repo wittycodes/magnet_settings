@@ -13,7 +13,7 @@ from time import sleep
 import argparse
 
 japc = pyjapc.PyJapc('SPS.USER.ALL')
-japc.rbacLogin(username='awakeop', password='Plasma4edda')
+japc.rbacLogin(username='awakeop', password='')
 japc.rbacGetToken()
 
 

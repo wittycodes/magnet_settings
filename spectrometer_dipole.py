@@ -139,7 +139,7 @@ def dipole_turn_on(current, ramp_duration):
     
 def current_plot():
     
-    # Plot current values live
+    # Plot current values over past 10 seconds.
     
     print("\nGathering current data. Please wait...\n")
     

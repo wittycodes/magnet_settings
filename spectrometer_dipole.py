@@ -139,7 +139,9 @@ def dipole_turn_on(current, ramp_duration):
     
 def current_plot():
     
-    # Plot current values over past 10 seconds.
+    """
+    This function plots the current values for the last 10 seconds, and also returns the mean current.
+    """
     
     print("\nGathering current data. Please wait...\n")
     
@@ -167,6 +169,10 @@ def current_plot():
     
 
 def dipole_turn_off():
+    
+    """
+    This function checks the state of the dipole, and turns it off if it isn't already.
+    """
     
     check_state = japc.getParam('RPPEF.BB4.RBIH.412435/STATE')
     

@@ -13,7 +13,7 @@ import argparse
 
 #%%
 
-japc = pyjapc.PyJapc('SPS.USER.AWAKE1')
+japc = pyjapc.PyJapc('SPS.USER.ALL')
 japc.rbacLogin(username='awakeop', password='Plasma4edda')
 japc.rbacGetToken()
 
@@ -40,11 +40,11 @@ def dipole_turn_on(current, ramp_duration):
     print("Turning on dipole to current {}A.\n".format(current))
     print("Checking PC state...")
     
-    pc_status = japc.getParam('RPPEF.BB4.RBIH.412435/STATE', timingSelectorOverride='SPS.USER.ALL')
+    pc_status = japc.getParam('RPPEF.BB4.RBIH.412435/STATE')
     
     if pc_status['PC'] != 'OFF':
         
-        japc.setParam('RPPEF.BB4.RBIH.412435/MODE.PC', 'OFF', timingSelectorOverride='SPS.USER.ALL')
+        japc.setParam('RPPEF.BB4.RBIH.412435/MODE.PC', 'OFF')
         
         print("PC was in state: {}".format(pc_status['PC']))
         print("Turning PC off.")
@@ -52,7 +52,7 @@ def dipole_turn_on(current, ramp_duration):
         # Wait a few seconds to allow PC to switch off
         sleep(10)
         
-        updated_status = japc.getParam('RPPEF.BB4.RBIH.412435/STATE', timingSelectorOverride='SPS.USER.ALL')
+        updated_status = japc.getParam('RPPEF.BB4.RBIH.412435/STATE')
         
         print("PC is now in state: {}\n".format(updated_status['PC']))
         print("Beginning dipole turn on procedure...\n")
@@ -67,11 +67,11 @@ def dipole_turn_on(current, ramp_duration):
     
     print("Updating PC modes...")
     
-    japc.setParam('RPPEF.BB4.RBIH.412435/MODE.PC', 'ON_STANDBY', timingSelectorOverride='SPS.USER.ALL')
+    japc.setParam('RPPEF.BB4.RBIH.412435/MODE.PC', 'ON_STANDBY')
     sleep(5)
-    japc.setParam('RPPEF.BB4.RBIH.412435/MODE.PC', 'IDLE', timingSelectorOverride='SPS.USER.ALL')
+    japc.setParam('RPPEF.BB4.RBIH.412435/MODE.PC', 'IDLE')
     
-    pc_status = japc.getParam('RPPEF.BB4.RBIH.412435/STATE', timingSelectorOverride='SPS.USER.ALL')
+    pc_status = japc.getParam('RPPEF.BB4.RBIH.412435/STATE')
     
     print("PC in state: {}\n".format(pc_status['PC']))
     
@@ -79,9 +79,9 @@ def dipole_turn_on(current, ramp_duration):
     
     print("Setting function type...")
     
-    japc.setParam('RPPEF.BB4.RBIH.412435/REF.FUNC.TYPE', 'CTRIM', timingSelectorOverride='SPS.USER.ALL')
+    japc.setParam('RPPEF.BB4.RBIH.412435/REF.FUNC.TYPE', 'CTRIM')
     sleep(1)
-    func_type = japc.getParam('RPPEF.BB4.RBIH.412435/REF.FUNC.TYPE',  timingSelectorOverride='SPS.USER.ALL')
+    func_type = japc.getParam('RPPEF.BB4.RBIH.412435/REF.FUNC.TYPE')
     
     print("Function type set to: {}\n".format(func_type))
     
@@ -95,13 +95,13 @@ def dipole_turn_on(current, ramp_duration):
     print("Current = {}A".format(current_set))
     print("Ramp Duration = {}s\n".format(ramp_duration_set))
     
-    japc.setParam('RPPEF.BB4.RBIH.412435/REF.TRIM.DURATION', ramp_duration_set, timingSelectorOverride='SPS.USER.ALL')
-    japc.setParam('RPPEF.BB4.RBIH.412435/REF.TRIM.FINAL', current_set, timingSelectorOverride='SPS.USER.ALL')
+    japc.setParam('RPPEF.BB4.RBIH.412435/REF.TRIM.DURATION', ramp_duration_set)
+    japc.setParam('RPPEF.BB4.RBIH.412435/REF.TRIM.FINAL', current_set)
     
     sleep(3)
     
-    check_current = japc.getParam('RPPEF.BB4.RBIH.412435/REF.TRIM.FINAL', timingSelectorOverride='SPS.USER.ALL')
-    check_ramp = japc.getParam('RPPEF.BB4.RBIH.412435/REF.TRIM.DURATION', timingSelectorOverride='SPS.USER.ALL')
+    check_current = japc.getParam('RPPEF.BB4.RBIH.412435/REF.TRIM.FINAL')
+    check_ramp = japc.getParam('RPPEF.BB4.RBIH.412435/REF.TRIM.DURATION')
     
     print("Magnet settings have been set to:")
     print("Current = {}A".format(check_current))
@@ -109,7 +109,7 @@ def dipole_turn_on(current, ramp_duration):
     
     # PC state should now be 'ARMED'. 
     
-    check_state = japc.getParam('RPPEF.BB4.RBIH.412435/STATE', timingSelectorOverride='SPS.USER.ALL')
+    check_state = japc.getParam('RPPEF.BB4.RBIH.412435/STATE')
     
     print("PC State set to: {}\n".format(check_state['PC']))
     
@@ -117,11 +117,11 @@ def dipole_turn_on(current, ramp_duration):
     
         print("Turning on dipole...\n")
     
-        japc.setParam('RPPEF.BB4.RBIH.412435/REF.RUN', 1.0, timingSelectorOverride='SPS.USER.ALL')
+        japc.setParam('RPPEF.BB4.RBIH.412435/REF.RUN', 1.0)
         
         sleep(1)
         
-        check_run_state = japc.getParam('RPPEF.BB4.RBIH.412435/STATE', timingSelectorOverride='SPS.USER.ALL')
+        check_run_state = japc.getParam('RPPEF.BB4.RBIH.412435/STATE')
         
         print("PC State: {}".format(check_run_state['PC']))
     
@@ -134,7 +134,7 @@ def dipole_turn_on(current, ramp_duration):
     
     sleep(ramp_duration_set)
     
-    current_test = japc.getParam('RPPEF.BB4.RBIH.412435/MEAS.I', timingSelectorOverride='SPS.USER.ALL')
+    current_test = japc.getParam('RPPEF.BB4.RBIH.412435/MEAS.I')
     
     print("Current is at {}A".format(current_test))
     
@@ -151,7 +151,7 @@ def current_plot():
     
     while timesteps <= 100:
         
-        current_val = japc.getParam('RPPEF.BB4.RBIH.412435/MEAS.I', timingSelectorOverride='SPS.USER.ALL')
+        current_val = japc.getParam('RPPEF.BB4.RBIH.412435/MEAS.I')
         current_array.append(current_val)
         sleep(0.1)
         timesteps = timesteps + 1
@@ -171,7 +171,7 @@ def current_plot():
 
 def dipole_turn_off():
     
-    check_state = japc.getParam('RPPEF.BB4.RBIH.412435/STATE', timingSelectorOverride='SPS.USER.ALL')
+    check_state = japc.getParam('RPPEF.BB4.RBIH.412435/STATE')
     
     if check_state['PC'] == 'OFF':
         
@@ -183,13 +183,13 @@ def dipole_turn_off():
         
         print("PC current state: {}".format(check_state['PC']))
         print('Turning off...')
-        japc.setParam('RPPEF.BB4.RBIH.412435/MODE.PC', 'OFF', timingSelectorOverride='SPS.USER.ALL')
+        japc.setParam('RPPEF.BB4.RBIH.412435/MODE.PC', 'OFF')
         
         # Allow time to shutdown
         
         sleep(10)
         
-        pc_state = japc.getParam('RPPEF.BB4.RBIH.412435/STATE', timingSelectorOverride='SPS.USER.ALL')
+        pc_state = japc.getParam('RPPEF.BB4.RBIH.412435/STATE')
         
         print("PC current state: {}".format(pc_state['PC']))
     

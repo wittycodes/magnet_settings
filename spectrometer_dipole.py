@@ -12,13 +12,10 @@ import matplotlib.pyplot as plt
 from time import sleep
 import argparse
 
-#%%
-
 japc = pyjapc.PyJapc('SPS.USER.ALL')
 japc.rbacLogin(username='awakeop', password='Plasma4edda')
 japc.rbacGetToken()
 
-#%%
 
 def dipole_turn_on(current, ramp_duration):
     
@@ -168,7 +165,6 @@ def current_plot():
     plt.xlim(0, 10)
     plt.show()
     
-   
 
 def dipole_turn_off():
     
@@ -194,8 +190,6 @@ def dipole_turn_off():
         
         print("PC current state: {}".format(pc_state['PC']))
     
-    
-#%%
 
 if __name__ == "__main__":
     

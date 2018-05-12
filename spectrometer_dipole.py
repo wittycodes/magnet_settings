@@ -2,7 +2,8 @@
 """
 spectrometer_dipole.py
 
-This script controls the dipole magnet that is part of the electron spectrometer in the AWAKE experiment at CERN. Developed by James Chappell: james.anthony.chappell@cern.ch
+This script controls the dipole magnet that is part of the electron spectrometer in the AWAKE experiment 
+at CERN. Developed by James Chappell: james.anthony.chappell@cern.ch
 """
 
 import pyjapc

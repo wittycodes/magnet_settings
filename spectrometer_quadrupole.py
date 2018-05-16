@@ -19,7 +19,7 @@ japc.rbacGetToken()
 def quadrupole_turn_on(current):
     
     """ 
-    This function turns on the UCL AWAKE Spectrometer dipole to the settings 
+    This function turns on the UCL AWAKE Spectrometer quadrupoles to the settings 
     given by the input arguments.
     
     Arguments:

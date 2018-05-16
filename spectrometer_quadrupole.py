@@ -2,7 +2,7 @@
 """
 spectrometer_quadrupole.py
 
-This script controls the quadrupole magnets that is part of the electron spectrometer in the AWAKE experiment 
+This script controls the quadrupole magnets that are part of the electron spectrometer in the AWAKE experiment 
 at CERN. Developed by James Chappell: james.anthony.chappell@cern.ch
 """
 

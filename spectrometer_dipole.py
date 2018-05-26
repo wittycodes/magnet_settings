@@ -9,11 +9,12 @@ at CERN. Developed by James Chappell: james.anthony.chappell@cern.ch
 import pyjapc
 import numpy as np
 import matplotlib.pyplot as plt
+import pylogbook
 from time import sleep
 import argparse
 
 japc = pyjapc.PyJapc('SPS.USER.ALL')
-japc.rbacLogin(username='awakeop', password='')
+japc.rbacLogin(username='awakeop', password='Plasma4edda')
 japc.rbacGetToken()
 
 
@@ -92,6 +93,90 @@ def dipole_turn_on(current, ramp_duration):
     print("Setting magnet trim settings to:")
     print("Current = {}A".format(current_set))
     print("Ramp Duration = {}s\n".format(ramp_duration_set))
+    
+    # This stores the variable somewhere the event builder can find it and prints to e-log
+    var_vec = japc.getParam('TSG41.AWAKE-GUI-SUPPORT/ValueAcquisition#floatValue')
+    var_vec[68] = current_set
+    japc.setParam('TSG41.AWAKE-GUI-SUPPORT/ValueSettings#floatValue',var_vec)
+    elog = pylogbook.eLogbook("AWAKE")
+    entry = elog.create_event("Spectrometer Dipole set to "+"{:0.2f}".format(current_set)+" Amps")
+    
+    japc.setParam('RPPEF.BB4.RBIH.412435/REF.TRIM.DURATION', ramp_duration_set)
+    japc.setParam('RPPEF.BB4.RBIH.412435/REF.TRIM.FINAL', current_set)
+    
+    sleep(3)
+    
+    check_current = japc.getParam('RPPEF.BB4.RBIH.412435/REF.TRIM.FINAL')
+    check_ramp = japc.getParam('RPPEF.BB4.RBIH.412435/REF.TRIM.DURATION')
+    
+    print("Magnet settings have been set to:")
+    print("Current = {}A".format(check_current))
+    print("Ramp Duration = {}s\n".format(check_ramp))
+    
+    # PC state should now be 'ARMED'. 
+    
+    check_state = japc.getParam('RPPEF.BB4.RBIH.412435/STATE')
+    
+    print("PC State set to: {}\n".format(check_state['PC']))
+    
+    if check_state['PC'] == 'ARMED':
+    
+        print("Turning on dipole...\n")
+    
+        japc.setParam('RPPEF.BB4.RBIH.412435/REF.RUN', 1.0)
+        
+        sleep(1)
+        
+        check_run_state = japc.getParam('RPPEF.BB4.RBIH.412435/STATE')
+        
+        print("PC State: {}".format(check_run_state['PC']))
+    
+    else:
+        
+        print("PC state not 'ARMED'. Breaking...")
+        return 0
+    
+    # Wait for ramp duration to check what the current is.
+    
+    sleep(ramp_duration_set)
+    
+    current_test = japc.getParam('RPPEF.BB4.RBIH.412435/MEAS.I')
+    
+    print("Current is at {}A".format(current_test))
+    
+    
+def change_current(current):
+    
+    pc_status = japc.getParam('RPPEF.BB4.RBIH.412435/STATE')
+    
+    print("PC in state: {}\n".format(pc_status['PC']))
+    
+    # Finding _non_multiplexed_sps context
+    
+    print("Setting function type...")
+    
+    japc.setParam('RPPEF.BB4.RBIH.412435/REF.FUNC.TYPE', 'CTRIM')
+    sleep(1)
+    func_type = japc.getParam('RPPEF.BB4.RBIH.412435/REF.FUNC.TYPE')
+    
+    print("Function type set to: {}\n".format(func_type))
+    
+    # Set the trim settings for duration and final according to the input
+    # arguments specified.
+    
+    current_set = float(current)
+    ramp_duration_set = float(ramp_duration)
+    
+    print("Setting magnet trim settings to:")
+    print("Current = {}A".format(current_set))
+    print("Ramp Duration = {}s\n".format(ramp_duration_set))
+    
+    # This stores the variable somewhere the event builder can find it and prints to e-log
+    var_vec = japc.getParam('TSG41.AWAKE-GUI-SUPPORT/ValueAcquisition#floatValue')
+    var_vec[68] = current_set
+    japc.setParam('TSG41.AWAKE-GUI-SUPPORT/ValueSettings#floatValue',var_vec)
+    elog = pylogbook.eLogbook("AWAKE")
+    entry = elog.create_event("Spectrometer Dipole set to "+"{:0.2f}".format(current_set)+" Amps")
     
     japc.setParam('RPPEF.BB4.RBIH.412435/REF.TRIM.DURATION', ramp_duration_set)
     japc.setParam('RPPEF.BB4.RBIH.412435/REF.TRIM.FINAL', current_set)
@@ -204,7 +289,7 @@ if __name__ == "__main__":
     """, formatter_class=argparse.RawTextHelpFormatter)
     
     parser.add_argument('--mode', dest='mode', default=None, choices=['on', 'off',
-    'plot'],  help='''
+    'plot', 'change'],  help='''
     This defines what you would like to do to the dipole magnet. The options 
     are:
         
@@ -213,6 +298,8 @@ if __name__ == "__main__":
         - 'off'     Switches off the magnet.
         
         - 'plot'    Produces a plot of the current values over the past 10 seconds.
+        
+        - 'change'  Changes the current on the dipole without turning on/off.
     ''')
         
     parser.add_argument('--current', dest='current', default=None, help='''
@@ -233,6 +320,10 @@ if __name__ == "__main__":
     elif mode == 'plot':
         
         current_plot()
+        
+    elif mode == 'change':
+        
+        change_current(arguments.current)
         
     elif arguments.mode == 'on' and arguments.current is None or arguments.ramp_duration is None:
         

@@ -2,7 +2,7 @@
 """
 spectrometer_quadrupole.py
 
-This script controls the quadrupole magnets that are part of the electron spectrometer in the AWAKE experiment 
+This script controls the quadrupole magnets that is part of the electron spectrometer in the AWAKE experiment 
 at CERN. Developed by James Chappell: james.anthony.chappell@cern.ch
 """
 
@@ -11,15 +11,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 from time import sleep
 import argparse
+import pylogbook
 
 japc = pyjapc.PyJapc('SPS.USER.ALL')
-japc.rbacLogin(username='awakeop', password='')
+japc.rbacLogin(username='awakeop', password='Plasma4edda')
 japc.rbacGetToken()
 
 def quadrupole_turn_on(current):
     
     """ 
-    This function turns on the UCL AWAKE Spectrometer quadrupoles to the settings 
+    This function turns on the UCL AWAKE Spectrometer dipole to the settings 
     given by the input arguments.
     
     Arguments:
@@ -80,6 +81,13 @@ def quadrupole_turn_on(current):
     print("Setting magnet PLEP settings to:")
     print("Current = {}A\n".format(current_set))
     
+    # This stores the variable somewhere the event builder can find it and prints to e-log
+    var_vec = japc.getParam('TSG41.AWAKE-GUI-SUPPORT/ValueAcquisition#floatValue')
+    var_vec[67] = current_set
+    japc.setParam('TSG41.AWAKE-GUI-SUPPORT/ValueSettings#floatValue',var_vec)
+    elog = pylogbook.eLogbook("AWAKE")
+    entry = elog.create_event("Spectrometer Qaudrupole set to "+"{:0.2f}".format(current_set)+" Amps")
+    
     japc.setParam('RPADA.BB4.RQNI.412432/REF.PLEP.FINAL', current_set)
     
     sleep(3)
@@ -131,6 +139,73 @@ def quadrupole_turn_on(current):
     print("Current is at {}A".format(current_test))
     
     
+def change_current(current):
+    
+    # Change the current without turning on.
+     
+    current_set = float(current)
+    
+    print("Setting magnet PLEP settings to:")
+    print("Current = {}A\n".format(current_set))
+    
+    # This stores the variable somewhere the event builder can find it and prints to e-log
+    var_vec = japc.getParam('TSG41.AWAKE-GUI-SUPPORT/ValueAcquisition#floatValue')
+    var_vec[67] = current_set
+    japc.setParam('TSG41.AWAKE-GUI-SUPPORT/ValueSettings#floatValue',var_vec)
+    elog = pylogbook.eLogbook("AWAKE")
+    entry = elog.create_event("Spectrometer Qaudrupole set to "+"{:0.2f}".format(current_set)+" Amps")
+    
+    japc.setParam('RPADA.BB4.RQNI.412432/REF.PLEP.FINAL', current_set)
+    
+    sleep(3)
+    
+    check_current = japc.getParam('RPADA.BB4.RQNI.412432/REF.PLEP.FINAL')
+    
+    print("Magnet settings have been set to:")
+    print("Current = {}A".format(check_current))
+    
+    # Finding _non_multiplexed_sps context
+    
+    print("Setting function type...")
+    
+    japc.setParam('RPADA.BB4.RQNI.412432/REF.FUNC.TYPE', 'PLEP')
+    sleep(1)
+    func_type = japc.getParam('RPADA.BB4.RQNI.412432/REF.FUNC.TYPE')
+    
+    print("Function type set to: {}\n".format(func_type))
+    
+    # PC state should now be 'ARMED'. 
+    
+    check_state = japc.getParam('RPADA.BB4.RQNI.412432/STATE')
+    
+    print("PC State set to: {}\n".format(check_state['PC']))
+    
+    if check_state['PC'] == 'ARMED':
+    
+        print("Turning on quadrupole...\n")
+    
+        japc.setParam('RPADA.BB4.RQNI.412432/REF.RUN', 1.0)
+        
+        sleep(1)
+        
+        check_run_state = japc.getParam('RPADA.BB4.RQNI.412432/STATE')
+        
+        print("PC State: {}".format(check_run_state['PC']))
+    
+    else:
+        
+        print("PC state not 'ARMED'. Breaking...")
+        return 0
+    
+    # Wait for ramp duration to check what the current is.
+    
+    sleep(3)
+    
+    current_test = japc.getParam('RPADA.BB4.RQNI.412432/MEAS.I')
+    
+    print("Current is at {}A".format(current_test))
+    
+
 def current_plot():
     
     """
@@ -199,7 +274,7 @@ if __name__ == "__main__":
     """, formatter_class=argparse.RawTextHelpFormatter)
     
     parser.add_argument('--mode', dest='mode', default=None, choices=['on', 'off',
-    'plot'],  help='''
+    'plot', 'change'],  help='''
     This defines what you would like to do to the quadrupole magnet. The options 
     are:
         
@@ -208,6 +283,8 @@ if __name__ == "__main__":
         - 'off'     Switches off the magnet.
         
         - 'plot'    Produces a plot of the current values over the past 10 seconds.
+        
+        - 'change'  Changes the value of the current without turning on/off the quadrupoles.
     ''')
         
     parser.add_argument('--current', dest='current', default=None, help='''
@@ -224,6 +301,10 @@ if __name__ == "__main__":
     elif mode == 'plot':
         
         current_plot()
+        
+    elif mode == 'change':
+        
+        change_current(arguments.current)
         
     elif arguments.mode == 'on' and arguments.current is None:
         

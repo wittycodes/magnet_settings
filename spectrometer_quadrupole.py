@@ -282,11 +282,15 @@ def energy_to_current(energy):
 
     current = a * energy**2 + b * energy + c
 
+
+
     if current > 362:
 
         print("Current value higher than possible with these quadrupoles. Will "
               "set to max value of 362 Amps.")
         current = 362
+
+    print("Current at which the quadrupoles will be set: %.1f".format(current))
 
     return current
 

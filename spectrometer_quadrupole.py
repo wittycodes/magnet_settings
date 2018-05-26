@@ -267,6 +267,32 @@ def quadrupole_turn_off():
         print("PC current state: {}".format(pc_state['PC']))
     
 
+def energy_to_current(energy):
+
+    """
+    Converts between a desired energy and the required quadrupole current to
+    focus at this energy.
+    """
+
+    energy_use = energy * 1000  # Convert to MeV
+
+    a = 2.974e-5
+    b = 2.647e-1
+    c = 3.565e-14
+
+    current = a * energy**2 + b * energy + c
+
+    if current > 362:
+
+        print("Current value higher than possible with these quadrupoles. Will "
+              "set to max value of 362 Amps.")
+        current = 362
+
+    return current
+
+
+
+
 if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description="""
@@ -289,6 +315,11 @@ if __name__ == "__main__":
         
     parser.add_argument('--current', dest='current', default=None, help='''
     This argument defines the value of the current that the dipole magnet should be set to. It is measured in Amps [A].''')
+
+    parser.add_argument('--energy', dest='energy', default=None, help='''
+    This argument automatically calculates the current that is required to 
+    focus at the given energy. Energy is measured in GeV.
+    ''')
     
     arguments = parser.parse_args()
     
@@ -303,17 +334,49 @@ if __name__ == "__main__":
         current_plot()
         
     elif mode == 'change':
+
+        if arguments.current is None and arguments.energy is not None:
+
+            current = energy_to_current(float(arguments.energy))
+
+            change_current(current)
+
+        else:
+
+            if float(arguments.current) > 362:
+
+                print("Requested current greater than 362A. Setting to "
+                      "maximum current.")
+
+                current = 362.
+
+                change_current(current)
+
+            else:
+
+                change_current(float(arguments.current))
         
-        change_current(arguments.current)
+    elif arguments.mode == 'on' and arguments.current is None and \
+            arguments.energy is not None:
         
-    elif arguments.mode == 'on' and arguments.current is None:
-        
-        parser.error("--mode 'on' also requires --current option. See --help for more details.")
+        current = energy_to_current(float(arguments.energy))
+
+        quadrupole_turn_on(current)
         
     else:
-        
-        current_set = float(arguments.current)
-        
-        quadrupole_turn_on(current_set)
+
+        if float(arguments.current) > 362.:
+            print("Requested current greater than 362A. Setting to "
+                  "maximum current.")
+
+            current = 362.
+
+            quadrupole_turn_on(current)
+
+        else:
+
+            current_set = float(arguments.current)
+
+            quadrupole_turn_on(current_set)
         
         
